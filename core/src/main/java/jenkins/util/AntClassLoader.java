@@ -582,6 +582,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @deprecated since 1.6.x.
      *             Use Class.forName with initialize=true instead.
      */
+    @Deprecated
     public static void initializeClass(Class theClass) {
         // ***HACK*** We ask the VM to create an instance
         // by voluntarily providing illegal arguments to force
@@ -1351,31 +1352,25 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
         throws ClassNotFoundException {
         // we need to search the components of the path to see if
         // we can find the class we want.
-        InputStream stream = null;
         String classFilename = getClassFilename(name);
-        try {
-            Enumeration e = pathComponents.elements();
-            while (e.hasMoreElements()) {
-                File pathComponent = (File) e.nextElement();
-                try {
-                    stream = getResourceStream(pathComponent, classFilename);
-                    if (stream != null) {
-                        log("Loaded from " + pathComponent + " "
-                            + classFilename, Project.MSG_DEBUG);
-                        return getClassFromStream(stream, name, pathComponent);
-                    }
-                } catch (SecurityException se) {
-                    throw se;
-                } catch (IOException ioe) {
-                    // ioe.printStackTrace();
-                    log("Exception reading component " + pathComponent + " (reason: "
-                            + ioe.getMessage() + ")", Project.MSG_VERBOSE);
+        Enumeration e = pathComponents.elements();
+        while (e.hasMoreElements()) {
+            File pathComponent = (File) e.nextElement();
+            try (final InputStream stream = getResourceStream(pathComponent, classFilename)) {
+                if (stream != null) {
+                    log("Loaded from " + pathComponent + " "
+                        + classFilename, Project.MSG_DEBUG);
+                    return getClassFromStream(stream, name, pathComponent);
                 }
+            } catch (SecurityException se) {
+                throw se;
+            } catch (IOException ioe) {
+                // ioe.printStackTrace();
+                log("Exception reading component " + pathComponent + " (reason: "
+                        + ioe.getMessage() + ")", Project.MSG_VERBOSE);
             }
-            throw new ClassNotFoundException(name);
-        } finally {
-            FileUtils.close(stream);
         }
+        throw new ClassNotFoundException(name);
     }
 
     /**

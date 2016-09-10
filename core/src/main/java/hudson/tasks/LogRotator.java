@@ -29,6 +29,7 @@ import hudson.model.Job;
 import hudson.model.Run;
 import jenkins.model.BuildDiscarder;
 import jenkins.model.BuildDiscarderDescriptor;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -94,6 +95,7 @@ public class LogRotator extends BuildDiscarder {
      * @deprecated since 1.350.
      *      Use {@link #LogRotator(int, int, int, int)}
      */
+    @Deprecated
     public LogRotator(int daysToKeep, int numToKeep) {
         this(daysToKeep, numToKeep, -1, -1);
     }
@@ -251,7 +253,7 @@ public class LogRotator extends BuildDiscarder {
         return String.valueOf(i);
     }
 
-    @Extension
+    @Extension @Symbol("logRotator")
     public static final class LRDescriptor extends BuildDiscarderDescriptor {
         public String getDisplayName() {
             return "Log Rotation";
